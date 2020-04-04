@@ -6,8 +6,8 @@ namespace Nacre
 {
     public class NacreView : ContentView
     {
-        public IEnumerable<IBackground> Background { get; set; }
-        public Border Border { get; set; }
-        public IEnumerable<Shadow> Shadow { get; set; }
+        public static readonly BindableProperty NacreProperty = BindableProperty.Create(nameof(Nacre), typeof(Nacre), typeof(NacreView));
+
+        public Nacre Nacre { get => (Nacre)GetValue(NacreProperty); set => SetValue(NacreProperty, value); }
     }
 }

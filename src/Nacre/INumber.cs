@@ -19,7 +19,7 @@ namespace Nacre
         public Absolute(double v) => Value = v;
 
         public static implicit operator double(Absolute a) => a.Value;
-        public static explicit operator Absolute(double d) => new Absolute { Value = d };
+        public static explicit operator Absolute(double d) => new Absolute(d);
     }
 
     public struct Relative : IRelativeNumber

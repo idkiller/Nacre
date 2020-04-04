@@ -2,7 +2,7 @@
 
 namespace Nacre.Renderer
 {
-    public class Nacre
+    public class NacreViews
     {
         public static readonly string Tag = "Nacre";
 
