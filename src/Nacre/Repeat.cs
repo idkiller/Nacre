@@ -1,4 +1,6 @@
-﻿namespace Nacre
+﻿using System;
+
+namespace Nacre
 {
     public struct Repeat
     {
@@ -13,6 +15,11 @@
 
         public Repeat(RepeatKeyword all) : this(all, all)
         {
+        }
+
+        public override string ToString()
+        {
+            return $"Repeat {{{Enum.GetName(typeof(RepeatKeyword), X)}, {Enum.GetName(typeof(RepeatKeyword), Y)}}}";
         }
     }
 

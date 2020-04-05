@@ -1,4 +1,5 @@
-﻿using Xamarin.Forms;
+﻿using System.Text;
+using Xamarin.Forms;
 
 namespace Nacre
 {
@@ -13,6 +14,50 @@ namespace Nacre
         public BorderRadius? BottomRight { get; set; }
         public BorderRadius? TopLeft { get; set; }
         public BorderRadius? TopRight { get; set; }
+
+        public double Width {
+            set
+            {
+                Left = new BorderValues(Left) { Width = value };
+                Top = new BorderValues(Top) { Width = value };
+                Right = new BorderValues(Right) { Width = value };
+                Bottom = new BorderValues(Bottom) { Width = value };
+            }
+            get
+            {
+                return Left.Width;
+            }
+        }
+
+        public Color Color
+        {
+            set
+            {
+                Left = new BorderValues(Left) { Color = value };
+                Top = new BorderValues(Top) { Color = value };
+                Right = new BorderValues(Right) { Color = value };
+                Bottom = new BorderValues(Bottom) { Color = value };
+            }
+            get
+            {
+                return Left.Color;
+            }
+        }
+
+        public LineStyle Style
+        {
+            set
+            {
+                Left = new BorderValues(Left) { Style = value };
+                Top = new BorderValues(Top) { Style = value };
+                Right = new BorderValues(Right) { Style = value };
+                Bottom = new BorderValues(Bottom) { Style = value };
+            }
+            get
+            {
+                return Left.Style;
+            }
+        }
 
         public Border(double width, LineStyle style, Color color)
         {
@@ -37,6 +82,20 @@ namespace Nacre
 
         public Border(double width) : this(width, LineStyle.Solid, Color.Default)
         {
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.Append($"Border-Left : {Left}\n");
+            sb.Append($"Border-Top : {Top}\n");
+            sb.Append($"Border-Right : {Right}\n");
+            sb.Append($"Border-Bottom : {Bottom}\n");
+            sb.Append($"Border-Top-Left-Radius : {TopLeft}\n");
+            sb.Append($"Border-Top-Right-Radius : {TopRight}\n");
+            sb.Append($"Border-Bottom-Left-Radius : {BottomLeft}\n");
+            sb.Append($"Border-Bottom-Right-Radius : {BottomRight}");
+            return sb.ToString();
         }
     }
 }

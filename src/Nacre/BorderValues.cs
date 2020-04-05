@@ -1,18 +1,28 @@
-﻿using Xamarin.Forms;
+﻿using System;
+using Xamarin.Forms;
 
 namespace Nacre
 {
     public struct BorderValues
     {
         public Color Color { get; set; }
-        public double WIdth { get; set; }
+        public double Width { get; set; }
         public LineStyle Style { get; set; }
+
+        public override string ToString()
+        {
+            return $"#{Color.ToHex()}, {Width.ToString()}, {Enum.GetName(typeof(LineStyle), Style)}";
+        }
 
         public BorderValues(double width, LineStyle style, Color color)
         {
-            WIdth = width;
+            Width = width;
             Style = style;
             Color = color;
+        }
+
+        public BorderValues(BorderValues values) : this(values.Width, values.Style, values.Color)
+        {
         }
 
         public BorderValues(double width, Color color) : this(width, LineStyle.Solid, color)

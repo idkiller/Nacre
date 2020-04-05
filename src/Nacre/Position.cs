@@ -27,17 +27,22 @@
         public Position(IRelativeNumber relative) : this(new PositionValue(relative))
         {
         }
+
+        public override string ToString()
+        {
+            return $"Position {{{X}, {Y}}}";
+        }
     }
 
     public struct PositionValue
     {
-        public IRelativeNumber Relative { get; set; }
+        public INumber Value { get; set; }
 
         public double Offset { get; set; }
 
-        public PositionValue(IRelativeNumber relative , double offset)
+        public PositionValue(INumber number , double offset)
         {
-            Relative = relative;
+            Value = number;
             Offset = offset;
         }
 
@@ -51,6 +56,11 @@
 
         public PositionValue(PositionKeyword relative) : this(relative, 0)
         {
+        }
+
+        public override string ToString()
+        {
+            return $"({(Value == null ? "undefined" : Value.ToString())} + {Offset})";
         }
     }
 

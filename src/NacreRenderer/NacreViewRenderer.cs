@@ -20,7 +20,8 @@ namespace Nacre.Renderer
 
         ElmSharp.Rect formsGeometry;
 
-        double extraLeft, extraTop, extraRight, extraBottom;
+        SKRect rectWithBorder;
+        SKRect rectWithoutBorder;
 
         public NacreViewRenderer()
         {
@@ -80,7 +81,7 @@ namespace Nacre.Renderer
 
         void OnNacreChanged(bool initialize)
         {
-            UpdateCanvasSize(Control.Geometry.Left, Control.Geometry.Top, Control.Geometry.Width, Control.Geometry.Height);
+            UpdateCanvasSize(formsGeometry.Left, formsGeometry.Top, formsGeometry.Width, formsGeometry.Height);
         }
 
         void OnPaintCanvas(object sender, SKPaintSurfaceEventArgs e)
@@ -88,21 +89,24 @@ namespace Nacre.Renderer
             var info = e.Info;
             var canvas = e.Surface.Canvas;
 
-            var left = (canvasView.Geometry.Width - formsGeometry.Width) / 2;
-            var top = (canvasView.Geometry.Height - formsGeometry.Height) / 2;
-
-            var rect = new SKRect((float)extraLeft, (float)extraTop, (float)(formsGeometry.Width + extraLeft), (float)(formsGeometry.Height + extraBottom));
-
             if (Self.Nacre.Shadow != null)
             {
                 foreach (var shadow in Self.Nacre.Shadow)
                 {
-                    canvas.DrawShadow(rect, shadow);
+                    canvas.DrawShadow(rectWithBorder, shadow);
+                }
+            }
+
+            if (Self.Nacre.Background != null)
+            {
+                foreach (var bg in Self.Nacre.Background)
+                {
+                    canvas.DrawBackground(rectWithoutBorder, bg);
                 }
             }
 
             var border = Self.Nacre.Border;
-            canvas.DrawBorder(rect, Self.Nacre.Border);
+            canvas.DrawBorder(rectWithBorder, Self.Nacre.Border);
 
         }
 
@@ -132,16 +136,16 @@ namespace Nacre.Renderer
 
             var border = Self.Nacre.Border;
 
-            left -= border.Left.WIdth;
-            top -= border.Top.WIdth;
-            right += border.Right.WIdth;
-            bottom += border.Bottom.WIdth;
+            rectWithBorder = new SKRect((float)-left, (float)-top,
+                (float)(-left + width + border.Left.Width + border.Right.Width),
+                (float)(-top + height + border.Top.Width + border.Bottom.Width));
 
-            extraLeft = left;
-            extraRight = right;
-            extraTop = top;
-            extraBottom = bottom;
+            left -= border.Left.Width;
+            top -= border.Top.Width;
+            right += border.Right.Width;
+            bottom += border.Bottom.Width;
 
+            rectWithoutBorder = new SKRect((float)-left, (float)-top, (float)(-left + width), (float)(-top + height));
 
             System.Console.WriteLine($"-- {width}, {height} / {left}, {top}, {right}, {bottom}");
             var geometry = new Rectangle(x + left, y + top, right - left, bottom - top).ToPixel();

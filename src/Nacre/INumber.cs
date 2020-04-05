@@ -20,6 +20,11 @@ namespace Nacre
 
         public static implicit operator double(Absolute a) => a.Value;
         public static explicit operator Absolute(double d) => new Absolute(d);
+
+        public override string ToString()
+        {
+            return $"{Value}";
+        }
     }
 
     public struct Relative : IRelativeNumber
@@ -36,6 +41,11 @@ namespace Nacre
 
         public static explicit operator Relative(double d) => new Relative(d);
         public static explicit operator Relative(Percent p) => new Relative(p);
+
+        public override string ToString()
+        {
+            return $"{Value}r";
+        }
     }
 
     public struct Percent : IRelativeNumber
@@ -56,6 +66,11 @@ namespace Nacre
 
         public static explicit operator Percent(Relative r) => new Percent(r);
         public static explicit operator Percent(double d) => new Percent(d);
+
+        public override string ToString()
+        {
+            return $"{Value}%";
+        }
     }
 
     public static class NumberExtensions

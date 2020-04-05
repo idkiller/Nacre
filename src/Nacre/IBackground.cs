@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Xamarin.Forms;
 
 namespace Nacre
@@ -18,6 +19,11 @@ namespace Nacre
         public Position Position { get; set; }
         public Repeat Repeat { get; set; }
         public Size Size { get; set; }
+
+        public override string ToString()
+        {
+            return $"BackgroundColor : #{Color.ToHex()}, {Enum.GetName(typeof(BackgroundOrigin), Origin)}, {Position}, {Repeat}, {Size}";
+        }
     }
 
     public struct BackgroundImage : IBackground
