@@ -4,58 +4,49 @@ using Xamarin.Forms;
 
 namespace Nacre
 {
-    public interface IBackground
+    public interface ISource
     {
-        BackgroundOrigin Origin { get; set; }
-        Position Position { get; set; }
-        Repeat Repeat { get; set; }
-        global::Nacre.Size Size { get; set; }
     }
 
-    public struct BackgroundColor : IBackground
+    public struct SolidColor : ISource
     {
         public Color Color { get; set; }
-        public BackgroundOrigin Origin { get; set; }
-        public Position Position { get; set; }
-        public Repeat Repeat { get; set; }
-        public Size Size { get; set; }
-
-        public override string ToString()
-        {
-            return $"BackgroundColor : #{Color.ToHex()}, {Enum.GetName(typeof(BackgroundOrigin), Origin)}, {Position}, {Repeat}, {Size}";
-        }
     }
 
-    public struct BackgroundImage : IBackground
+    public struct ImageSource : ISource
     {
-        public ImageSource Image { get; set; }
-        public BackgroundOrigin Origin { get; set; }
-        public Position Position { get; set; }
-        public Repeat Repeat { get; set; }
-        public Size Size { get; set; }
+        public Xamarin.Forms.ImageSource Image { get; set; }
     }
 
-    public struct LinearGradient : IBackground
+    public struct LinearGradient : ISource
     {
         public Angle Angle { get; set; }
         public IEnumerable<ColorPosition> Colors { get; set; }
-
-        public BackgroundOrigin Origin { get; set; }
-        public Position Position { get; set; }
-        public Repeat Repeat { get; set; }
-        public Size Size { get; set; }
     }
 
-    public struct RadialGradient : IBackground
+    public struct RadialGradient : ISource
     {
         public RadialGradientShape Shape { get; set; }
         public Position Center { get; set; }
         public IEnumerable<ColorPosition> Colors { get; set; }
+    }
 
+    public struct Background
+    {
+        public ISource Source { get; set; }
         public BackgroundOrigin Origin { get; set; }
         public Position Position { get; set; }
         public Repeat Repeat { get; set; }
-        public Size Size { get; set; }
+        public global::Nacre.Size Size { get; set; }
+
+        public Background(Background bg)
+        {
+            Source = bg.Source;
+            Origin = bg.Origin;
+            Position = bg.Position;
+            Repeat = bg.Repeat;
+            Size = bg.Size;
+        }
     }
 
     public enum RadialGradientShape

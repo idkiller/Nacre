@@ -21,6 +21,10 @@ namespace Nacre
             Color = color;
         }
 
+        public Shadow(Shadow shadow) : this(shadow.Inset, shadow.OffsetX, shadow.OffsetY, shadow.BlurRadius, shadow.SpreadRadius, shadow.Color)
+        {
+        }
+
         public Shadow(bool inset, double x, double y, double blur, double spread) : this(inset, x, y, blur, spread, Color.Default)
         {
         }

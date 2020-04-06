@@ -32,53 +32,31 @@ namespace SimpleOne
                 HeightRequest = 80,
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 HorizontalOptions = LayoutOptions.CenterAndExpand,
-                Nacre = new Nacre.Nacre
-                {
-                    Background = new IBackground[] { new BackgroundColor{
-                        Color = Color.AntiqueWhite
-                    }},
-                    Shadow = new[] { new Shadow(10, 10, 2, Color.Black) },
-                    Border = new Border(2, LineStyle.Solid, Color.Black)
-                    /*
-                    Border = new Border
-                    {
-                        Left = new BorderValues(5, LineStyle.Solid, Color.Brown),
-                        Top = new BorderValues(10, LineStyle.Solid, Color.Yellow),
-                        Right = new BorderValues(3, LineStyle.Solid, Color.DarkGray),
-                        Bottom = new BorderValues(8, LineStyle.Solid, Color.DarkOrange),
-                        TopLeft = new BorderRadius(new Percent(10)),
-                        TopRight = new BorderRadius((Absolute)10, (Absolute)5),
-                        BottomLeft = new BorderRadius((Relative)0.5)
-                    }
-                    */
-                },
+                BackgroundColor = Color.Salmon,
+                ShadowOffsetX = 10,
+                ShadowOffsetY = 10,
+                ShadowBlurRadius = 2,
+                ShadowColor = Color.Black,
+                BorderWidth = 2,
+                BorderStyle = LineStyle.Solid,
+                BorderColor = Color.Black,
                 Content = inlay
             };
             layout.Children.Add(nacreView);
 
             var tapGesture = new TapGestureRecognizer();
-            var borderWidth = nacreView.Nacre.Border.Width;
-            var shadowOffsetX = nacreView.Nacre.Shadow.First().OffsetX;
-            var shadowOffsetY = nacreView.Nacre.Shadow.First().OffsetY;
+            var borderWidth = nacreView.BorderWidth;
+            var shadowOffsetX = nacreView.ShadowOffsetY;
+            var shadowOffsetY = nacreView.ShadowOffsetY;
             tapGesture.Tapped += (s, e) =>
             {
                 var anim = new Animation((v) =>
                 {
-                    var nacre = nacreView.Nacre;
-                    
-                    var border = nacre.Border;
-                    border.Width = borderWidth * v;
-
-                    var shadow = nacre.Shadow.First();
-                    shadow.OffsetX = shadowOffsetX * v;
-                    shadow.OffsetY = shadowOffsetY * v;
-                    
-                    nacre.Border = border;
-                    nacre.Shadow = new[] { shadow };
-
-                    Console.WriteLine(nacre);
-
-                    nacreView.Nacre = nacre;
+                    nacreView.BatchBegin();
+                    nacreView.BorderWidth = borderWidth * v;
+                    nacreView.ShadowOffsetX = shadowOffsetX * v;
+                    nacreView.ShadowOffsetY = shadowOffsetY * v;
+                    nacreView.BatchCommit();
                 }, 1, 1.5, Easing.SpringOut);
                 anim.Commit(nacreView, "nacreAnimation", 16, 250);
             };

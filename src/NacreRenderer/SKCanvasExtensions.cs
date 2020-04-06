@@ -9,14 +9,14 @@ namespace Nacre.Renderer
 {
     public static class SKCanvasExtensions
     {
-        public static void DrawBackground(this SKCanvas canvas, SKRect rect, IBackground bg)
+        public static void DrawBackground(this SKCanvas canvas, SKRect rect, Background bg)
         {
-            switch (bg)
+            switch (bg.Source)
             {
-                case BackgroundColor color:
+                case SolidColor color:
                     DrawBackgroundColor(canvas, rect, color);
                     break;
-                case BackgroundImage image:
+                case ImageSource image:
                     DrawBackgroundImage(canvas, rect, image);
                     break;
                 case LinearGradient linearGradient:
@@ -38,12 +38,12 @@ namespace Nacre.Renderer
             throw new NotImplementedException();
         }
 
-        private static void DrawBackgroundImage(SKCanvas canvas, SKRect rect, BackgroundImage image)
+        private static void DrawBackgroundImage(SKCanvas canvas, SKRect rect, ImageSource image)
         {
             throw new NotImplementedException();
         }
 
-        private static void DrawBackgroundColor(SKCanvas canvas, SKRect rect, BackgroundColor color)
+        private static void DrawBackgroundColor(SKCanvas canvas, SKRect rect, SolidColor color)
         {
             using (var paint = new SKPaint())
             {
@@ -72,6 +72,9 @@ namespace Nacre.Renderer
             }
         }
 
+        public static void DrawBorder(this SKCanvas canvas, SKRect rect, NacreView view)
+        {
+        }
         public static void DrawBorder(this SKCanvas canvas, SKRect rect, Border border)
         {
             DrawBorder(canvas,

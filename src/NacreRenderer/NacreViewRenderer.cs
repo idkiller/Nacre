@@ -2,8 +2,10 @@
 using SkiaSharp;
 using SkiaSharp.Views.Tizen;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Xamarin.Forms;
+using Xamarin.Forms.Internals;
 using Xamarin.Forms.Platform.Tizen;
 using Xamarin.Forms.Platform.Tizen.Native;
 
@@ -13,6 +15,24 @@ namespace Nacre.Renderer
 {
     class NacreViewRenderer : LayoutRenderer
     {
+        HashSet<string> NacrePropertyNames = new HashSet<string>
+        {
+            NacreView.BorderColorProperty.PropertyName,
+            NacreView.BorderWidthProperty.PropertyName,
+            NacreView.BorderStyleProperty.PropertyName,
+            NacreView.BorderLeftColorProperty.PropertyName,
+            NacreView.BorderLeftWidthProperty.PropertyName,
+            NacreView.BorderLeftStyleProperty.PropertyName,
+            NacreView.BorderTopColorProperty.PropertyName,
+            NacreView.BorderTopWidthProperty.PropertyName,
+            NacreView.BorderTopStyleProperty.PropertyName,
+            NacreView.BorderRightColorProperty.PropertyName,
+            NacreView.BorderRightWidthProperty.PropertyName,
+            NacreView.BorderRightStyleProperty.PropertyName,
+            NacreView.BorderBottomColorProperty.PropertyName,
+            NacreView.BorderBottomWidthProperty.PropertyName,
+            NacreView.BorderBottomStyleProperty.PropertyName
+        }; 
         SKCanvasView canvasView;
         NacreView Self => Element as NacreView;
 
@@ -23,17 +43,26 @@ namespace Nacre.Renderer
         SKRect rectWithBorder;
         SKRect rectWithoutBorder;
 
-        public NacreViewRenderer()
+        public override ElmSharp.Rect GetNativeContentGeometry()
         {
-            RegisterPropertyHandler(NacreView.NacreProperty, OnNacreChanged);
+            return formsGeometry;
         }
 
+        protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (Element.Batched && NacrePropertyNames.Contains(e.PropertyName))
+            {
+                return;
+            }
+            base.OnElementPropertyChanged(sender, e);
+        }
 
         protected override void OnElementChanged(ElementChangedEventArgs<Layout> e)
         {
             base.OnElementChanged(e);
             if (e.NewElement != null)
             {
+                Element.BatchCommitted += OnBatchCommited;
                 initialize();
             }
         }
@@ -45,9 +74,9 @@ namespace Nacre.Renderer
             UpdateCanvasSize(formsGeometry.Left, formsGeometry.Top, formsGeometry.Width, formsGeometry.Height);
         }
 
-        public override ElmSharp.Rect GetNativeContentGeometry()
+        void OnBatchCommited(object sender, EventArg<VisualElement> e)
         {
-            return formsGeometry;
+            UpdateCanvasSize(formsGeometry.Left, formsGeometry.Top, formsGeometry.Width, formsGeometry.Height);
         }
 
         void initialize()
@@ -81,6 +110,7 @@ namespace Nacre.Renderer
 
         void OnNacreChanged(bool initialize)
         {
+            if (initialize) return;
             UpdateCanvasSize(formsGeometry.Left, formsGeometry.Top, formsGeometry.Width, formsGeometry.Height);
         }
 
@@ -89,24 +119,23 @@ namespace Nacre.Renderer
             var info = e.Info;
             var canvas = e.Surface.Canvas;
 
-            if (Self.Nacre.Shadow != null)
+            if (Self.Shadows != null)
             {
-                foreach (var shadow in Self.Nacre.Shadow)
+                foreach (var shadow in Self.Shadows)
                 {
                     canvas.DrawShadow(rectWithBorder, shadow);
                 }
             }
 
-            if (Self.Nacre.Background != null)
+            if (Self.Backgrounds != null)
             {
-                foreach (var bg in Self.Nacre.Background)
+                foreach (var bg in Self.Backgrounds)
                 {
                     canvas.DrawBackground(rectWithoutBorder, bg);
                 }
             }
 
-            var border = Self.Nacre.Border;
-            canvas.DrawBorder(rectWithBorder, Self.Nacre.Border);
+            canvas.DrawBorder(rectWithBorder, Self);
 
         }
 
