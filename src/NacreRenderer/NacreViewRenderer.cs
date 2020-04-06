@@ -1,5 +1,6 @@
 ﻿using Nacre;
 using SkiaSharp;
+using SkiaSharp.Views;
 using SkiaSharp.Views.Tizen;
 using System;
 using System.Collections.Generic;
@@ -20,19 +21,19 @@ namespace Nacre.Renderer
             NacreView.BorderColorProperty.PropertyName,
             NacreView.BorderWidthProperty.PropertyName,
             NacreView.BorderStyleProperty.PropertyName,
-            NacreView.BorderLeftColorProperty.PropertyName,
-            NacreView.BorderLeftWidthProperty.PropertyName,
-            NacreView.BorderLeftStyleProperty.PropertyName,
-            NacreView.BorderTopColorProperty.PropertyName,
-            NacreView.BorderTopWidthProperty.PropertyName,
-            NacreView.BorderTopStyleProperty.PropertyName,
-            NacreView.BorderRightColorProperty.PropertyName,
-            NacreView.BorderRightWidthProperty.PropertyName,
-            NacreView.BorderRightStyleProperty.PropertyName,
-            NacreView.BorderBottomColorProperty.PropertyName,
-            NacreView.BorderBottomWidthProperty.PropertyName,
-            NacreView.BorderBottomStyleProperty.PropertyName
-        }; 
+            NacreView.BoxRadiusProperty.PropertyName,
+            NacreView.BackgroundSourceProperty.PropertyName,
+            NacreView.BackgroundOriginProperty.PropertyName,
+            NacreView.BackgroundPositionProperty.PropertyName,
+            NacreView.BackgroundRepeatProperty.PropertyName,
+            NacreView.BackgroundSizeProperty.PropertyName,
+            NacreView.ShadowInsetProperty.PropertyName,
+            NacreView.ShadowOffsetXProperty.PropertyName,
+            NacreView.ShadowOffsetYProperty.PropertyName,
+            NacreView.ShadowBlurRadiusProperty.PropertyName,
+            NacreView.ShadowSpreadRadiusProperty.PropertyName,
+            NacreView.ShadowColorProperty.PropertyName,
+        };
         SKCanvasView canvasView;
         NacreView Self => Element as NacreView;
 
@@ -55,6 +56,10 @@ namespace Nacre.Renderer
                 return;
             }
             base.OnElementPropertyChanged(sender, e);
+            if (NacrePropertyNames.Contains(e.PropertyName))
+            {
+                OnNacreChanged();
+            }
         }
 
         protected override void OnElementChanged(ElementChangedEventArgs<Layout> e)
@@ -108,35 +113,97 @@ namespace Nacre.Renderer
             });
         }
 
-        void OnNacreChanged(bool initialize)
+        void OnNacreChanged()
         {
-            if (initialize) return;
             UpdateCanvasSize(formsGeometry.Left, formsGeometry.Top, formsGeometry.Width, formsGeometry.Height);
         }
 
         void OnPaintCanvas(object sender, SKPaintSurfaceEventArgs e)
         {
-            var info = e.Info;
-            var canvas = e.Surface.Canvas;
-
-            if (Self.Shadows != null)
+            try
             {
-                foreach (var shadow in Self.Shadows)
-                {
-                    canvas.DrawShadow(rectWithBorder, shadow);
-                }
-            }
+                var info = e.Info;
+                var canvas = e.Surface.Canvas;
 
-            if (Self.Backgrounds != null)
+                using (var paint = new SKPaint())
+                {
+                    var rect = rectWithBorder;
+                    var shadowRect = rectWithBorder;
+                    paint.ImageFilter = SKImageFilter.CreateDropShadow(
+                        (float)Self.ShadowOffsetX,
+                        (float)Self.ShadowOffsetY,
+                        (float)Self.ShadowBlurRadius,
+                        (float)Self.ShadowBlurRadius,
+                        Self.ShadowColor.ToSK(),
+                        SKDropShadowImageFilterShadowMode.DrawShadowAndForeground);
+
+                    shadowRect.Inflate((float)Self.ShadowSpreadRadius, (float)Self.ShadowSpreadRadius);
+
+                    /*
+                    var half = (float)(Self.BorderWidth / 2);
+                    shadowRect.Left += half;
+                    shadowRect.Top += half;
+                    shadowRect.Right -= half;
+                    shadowRect.Bottom -= half;
+                    */
+
+                    float x = Self.BoxRadius.Horizontal != null ? (float)(Self.BoxRadius.Horizontal is IRelativeNumber rx ? rx.RelateTo(rectWithoutBorder.Width) : Self.BoxRadius.Horizontal.Value) : 0;
+                    float y = Self.BoxRadius.Vertical != null ? (float)(Self.BoxRadius.Vertical is IRelativeNumber ry ? ry.RelateTo(rectWithoutBorder.Height) : Self.BoxRadius.Vertical.Value) : 0;
+
+                    canvas.DrawRoundRect(shadowRect, new SKSize(x, y), paint);
+
+                    paint.ImageFilter = null;
+
+                    switch (Self.BackgroundSource)
+                    {
+                        case SolidColor color:
+                            paint.Style = SKPaintStyle.Fill;
+                            paint.Color = color.Color.ToSK();
+                            break;
+                        case ImageSource image:
+                            break;
+                        case LinearGradient linearGradient:
+                            break;
+                        case RadialGradient radialGradient:
+                            break;
+                    }
+
+                    canvas.DrawRoundRect(rect, new SKSize(x, y), paint);
+
+                    /*
+                    rect.Left -= half;
+                    rect.Top -= half;
+                    rect.Right += half;
+                    rect.Bottom += half;
+                    */
+
+                    paint.Style = SKPaintStyle.Stroke;
+                    paint.StrokeWidth = (float)Self.BorderWidth;
+                    paint.Color = Self.BorderColor.ToSK();
+                    //paint.PathEffect = Self.BorderStyle.ToSK();
+
+                    canvas.DrawRoundRect(rect, new SKSize(x, y), paint);
+                }
+
+                /*
+                canvas.DrawShadow(rectWithBorder, Self.ShadowInset, Self.ShadowOffsetX, Self.ShadowOffsetY, Self.ShadowBlurRadius, Self.ShadowSpreadRadius, Self.ShadowColor);
+                canvas.DrawBackground(rectWithoutBorder, new Background
+                {
+                    Source = Self.BackgroundSource,
+                    Origin = Self.BackgroundOrigin,
+                    Position = Self.BackgroundPosition,
+                    Repeat = Self.BackgroundRepeat,
+                    Size = Self.BackgroundSize
+                });
+
+                canvas.DrawBorder(rectWithoutBorder, Self.BorderWidth, Self.BorderStyle, Self.BorderColor, Self.BoxRadius);
+                */
+
+            }
+            catch (Exception ex)
             {
-                foreach (var bg in Self.Backgrounds)
-                {
-                    canvas.DrawBackground(rectWithoutBorder, bg);
-                }
+                Console.WriteLine(ex);
             }
-
-            canvas.DrawBorder(rectWithBorder, Self);
-
         }
 
         void UpdateCanvasSize(double x, double y, double width, double height)
@@ -145,34 +212,27 @@ namespace Nacre.Renderer
             double top = 0;
             double right = width;
             double bottom = height;
-            if (Self.Nacre.Shadow != null)
+
+            if (!Self.ShadowInset)
             {
-                foreach (var shadow in Self.Nacre.Shadow)
-                {
-                    if (!shadow.Inset)
-                    {
-                        var sl = shadow.OffsetX - shadow.BlurRadius - shadow.SpreadRadius;
-                        var sr = shadow.OffsetX + shadow.BlurRadius + shadow.SpreadRadius + width;
-                        var st = shadow.OffsetY - shadow.BlurRadius - shadow.SpreadRadius;
-                        var sb = shadow.OffsetY + shadow.BlurRadius + shadow.SpreadRadius + height;
-                        if (sl < left) left = sl;
-                        if (st < top) top = st;
-                        if (sr > right) right = sr;
-                        if (sb > bottom) bottom = sb;
-                    }
-                }
+                var sl = Self.ShadowOffsetX - Self.ShadowBlurRadius - Self.ShadowSpreadRadius;
+                var sr = Self.ShadowOffsetX + Self.ShadowBlurRadius + Self.ShadowSpreadRadius + width;
+                var st = Self.ShadowOffsetY - Self.ShadowBlurRadius - Self.ShadowSpreadRadius;
+                var sb = Self.ShadowOffsetY + Self.ShadowBlurRadius + Self.ShadowSpreadRadius + height;
+                if (sl < left) left = sl;
+                if (st < top) top = st;
+                if (sr > right) right = sr;
+                if (sb > bottom) bottom = sb;
             }
+            rectWithBorder = new SKRect((float)(-left + Self.BorderWidth / 2),
+                (float)(-top + Self.BorderWidth / 2),
+                (float)(-left + width + Self.BorderWidth),
+                (float)(-top + height + Self.BorderWidth));
 
-            var border = Self.Nacre.Border;
-
-            rectWithBorder = new SKRect((float)-left, (float)-top,
-                (float)(-left + width + border.Left.Width + border.Right.Width),
-                (float)(-top + height + border.Top.Width + border.Bottom.Width));
-
-            left -= border.Left.Width;
-            top -= border.Top.Width;
-            right += border.Right.Width;
-            bottom += border.Bottom.Width;
+            left += Self.BorderWidth;
+            top += Self.BorderWidth;
+            right += Self.BorderWidth;
+            bottom += Self.BorderWidth;
 
             rectWithoutBorder = new SKRect((float)-left, (float)-top, (float)(-left + width), (float)(-top + height));
 

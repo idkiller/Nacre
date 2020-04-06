@@ -19,6 +19,19 @@ namespace SimpleOne
         {
             InitializeComponent();
 
+            try
+            {
+                initNacre();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            
+        }
+
+        void initNacre()
+        {
             var inlay = new StackLayout
             {
                 VerticalOptions = LayoutOptions.CenterAndExpand,
@@ -32,14 +45,15 @@ namespace SimpleOne
                 HeightRequest = 80,
                 VerticalOptions = LayoutOptions.CenterAndExpand,
                 HorizontalOptions = LayoutOptions.CenterAndExpand,
-                BackgroundColor = Color.Salmon,
+                BackgroundSource = new SolidColor { Color = Color.Salmon },
                 ShadowOffsetX = 10,
                 ShadowOffsetY = 10,
                 ShadowBlurRadius = 2,
-                ShadowColor = Color.Black,
-                BorderWidth = 2,
+                ShadowColor = Color.Red,
+                BorderWidth = 10,
                 BorderStyle = LineStyle.Solid,
-                BorderColor = Color.Black,
+                BorderColor = Color.Green,
+                BoxRadius = new BorderRadius(new Percent(20)),
                 Content = inlay
             };
             layout.Children.Add(nacreView);

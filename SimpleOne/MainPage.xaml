@@ -4,7 +4,7 @@
              xmlns:c="clr-namespace:Tizen.Wearable.CircularUI.Forms;assembly=Tizen.Wearable.CircularUI.Forms"
              x:Class="SimpleOne.MainPage">
   <c:CirclePage.Content>
-    <StackLayout x:Name="layout" BackgroundColor="White">
+    <StackLayout x:Name="layout" BackgroundColor="Gray">
       <Label Text="Welcome to Xamarin.Forms!"
           VerticalOptions="CenterAndExpand"
           HorizontalOptions="CenterAndExpand" />

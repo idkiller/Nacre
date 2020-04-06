@@ -53,70 +53,49 @@ namespace Nacre.Renderer
             }
         }
 
-        public static void DrawShadow(this SKCanvas canvas, SKRect rect, Shadow shadow)
+        public static void DrawShadow(this SKCanvas canvas, SKRect rect, bool inset, double offsetX, double offsetY, double blurRadius, double spreadRadius, Xamarin.Forms.Color color)
         {
+            Console.WriteLine($"shadow rect = {rect}, {offsetX}, {offsetY}");
+
             using (var paint = new SKPaint())
             {
                 paint.Color = SKColors.Blue;
                 paint.ImageFilter = SKImageFilter.CreateDropShadow(
-                    (float)shadow.OffsetX,
-                    (float)shadow.OffsetY,
-                    (float)shadow.BlurRadius,
-                    (float)shadow.BlurRadius,
-                    shadow.Color.ToSK(),
+                    (float)offsetX,
+                    (float)offsetY,
+                    (float)blurRadius,
+                    (float)blurRadius,
+                    color.ToSK(),
                     SKDropShadowImageFilterShadowMode.DrawShadowAndForeground);
 
-                rect.Inflate((float)shadow.SpreadRadius, (float)shadow.SpreadRadius);
-
+                rect.Inflate((float)spreadRadius, (float)spreadRadius);
                 canvas.DrawRect(rect, paint);
             }
         }
 
-        public static void DrawBorder(this SKCanvas canvas, SKRect rect, NacreView view)
+        public static void DrawBorder(this SKCanvas canvas, SKRect rect, double width, LineStyle style, Xamarin.Forms.Color color, BorderRadius round)
         {
-        }
-        public static void DrawBorder(this SKCanvas canvas, SKRect rect, Border border)
-        {
-            DrawBorder(canvas,
-                rect.Left + (float)(border.Left.Width / 2),
-                rect.Top,
-                rect.Left + (float)(border.Left.Width / 2),
-                rect.Bottom,
-                border.Left);
-            DrawBorder(canvas,
-                rect.Left,
-                rect.Top + (float)(border.Top.Width / 2),
-                rect.Right,
-                rect.Top + (float)(border.Top.Width / 2),
-                border.Top);
-            DrawBorder(canvas,
-                rect.Right - (float)(border.Right.Width / 2),
-                rect.Top,
-                rect.Right - (float)(border.Right.Width / 2),
-                rect.Bottom,
-                border.Right);
-            DrawBorder(canvas,
-                rect.Left,
-                rect.Bottom - (float)(border.Bottom.Width / 2),
-                rect.Right,
-                rect.Bottom - (float)(border.Bottom.Width / 2),
-                border.Bottom);
-        }
-
-        static void DrawBorder(SKCanvas canvas, float x0, float y0, float x1, float y1, BorderValues border)
-        {
-            if (border.Width == 0) return;
+            if (width == 0) return;
             using (var paint = new SKPaint())
             {
                 paint.Style = SKPaintStyle.Stroke;
-                paint.StrokeWidth = (float)border.Width;
-                paint.Color = border.Color.ToSK();
+                paint.StrokeWidth = (float)width;
+                paint.Color = color.ToSK();
                 //paint.PathEffect = border.Style.ToSK();
-                canvas.DrawLine(x0, y0, x1, y1, paint);
+                var half = (float)(width / 2);
+                rect.Left -= half;
+                rect.Top -= half;
+                rect.Right += half;
+                rect.Bottom += half;
+
+                float x = round.Horizontal != null ? (float)(round.Horizontal is IRelativeNumber rx ? rx.RelateTo(rect.Width) : round.Horizontal.Value) : 0;
+                float y = round.Vertical != null ? (float)(round.Vertical is IRelativeNumber ry ? ry.RelateTo(rect.Height) : round.Vertical.Value) : 0;
+
+                canvas.DrawRoundRect(rect, new SKSize(x, y), paint);
             }
         }
 
-        static SKColor ToSK(this Xamarin.Forms.Color color)
+        public static SKColor ToSK(this Xamarin.Forms.Color color)
         {
             return new SKColor(
                         (byte)(color.R * 255),
@@ -125,7 +104,7 @@ namespace Nacre.Renderer
                         (byte)(color.A * 255));
         }
 
-        static SKPathEffect ToSK(this LineStyle style)
+        public static SKPathEffect ToSK(this LineStyle style)
         {
             switch (style)
             {
