@@ -5,97 +5,76 @@ namespace Nacre
 {
     public struct Border
     {
-        public BorderValues Left { get; set; }
-        public BorderValues Top { get; set; }
-        public BorderValues Right { get; set; }
-        public BorderValues Bottom { get; set; }
+        public double LeftWidth { get; set; }
+        public double TopWidth { get; set; }
+        public double RightWidth { get; set; }
+        public double BottomWidth { get; set; }
 
-        public BorderRadius? BottomLeft { get; set; }
-        public BorderRadius? BottomRight { get; set; }
-        public BorderRadius? TopLeft { get; set; }
-        public BorderRadius? TopRight { get; set; }
+        public LineStyle LeftStyle { get; set; }
+        public LineStyle TopStyle { get; set; }
+        public LineStyle RightStyle { get; set; }
+        public LineStyle BottomStyle { get; set; }
 
-        public double Width {
-            set
-            {
-                Left = new BorderValues(Left) { Width = value };
-                Top = new BorderValues(Top) { Width = value };
-                Right = new BorderValues(Right) { Width = value };
-                Bottom = new BorderValues(Bottom) { Width = value };
-            }
-            get
-            {
-                return Left.Width;
-            }
-        }
+        public Color LeftColor { get; set; }
+        public Color TopColor { get; set; }
+        public Color RightColor { get; set; }
+        public Color BottomColor { get; set; }
 
-        public Color Color
+        public Xamarin.Forms.Size BottomLeft { get; set; }
+        public Xamarin.Forms.Size BottomRight { get; set; }
+        public Xamarin.Forms.Size TopLeft { get; set; }
+        public Xamarin.Forms.Size TopRight { get; set; }
+
+        public Border(double width, LineStyle style, Color color, Xamarin.Forms.Size radius)
         {
-            set
-            {
-                Left = new BorderValues(Left) { Color = value };
-                Top = new BorderValues(Top) { Color = value };
-                Right = new BorderValues(Right) { Color = value };
-                Bottom = new BorderValues(Bottom) { Color = value };
-            }
-            get
-            {
-                return Left.Color;
-            }
+            LeftWidth = TopWidth = RightWidth = BottomWidth = width;
+            LeftStyle = TopStyle = RightStyle = BottomStyle = style;
+            LeftColor = TopColor = RightColor = BottomColor = color;
+            BottomLeft = BottomRight = TopLeft = TopRight = radius;
         }
 
-        public LineStyle Style
+        public Border(double width, LineStyle style, Color color) : this(width, style, color, default(Xamarin.Forms.Size))
         {
-            set
-            {
-                Left = new BorderValues(Left) { Style = value };
-                Top = new BorderValues(Top) { Style = value };
-                Right = new BorderValues(Right) { Style = value };
-                Bottom = new BorderValues(Bottom) { Style = value };
-            }
-            get
-            {
-                return Left.Style;
-            }
         }
-
-        public Border(double width, LineStyle style, Color color)
-        {
-            Left = new BorderValues(width, style, color);
-            Top = new BorderValues(width, style, color);
-            Right = new BorderValues(width, style, color);
-            Bottom = new BorderValues(width, style, color);
-
-            BottomLeft = null;
-            BottomRight = null;
-            TopLeft = null;
-            TopRight = null;
-        }
-
-        public Border(double width, LineStyle style) : this(width, style, Color.Default)
+        public Border(Size radius) : this(0, default(LineStyle), default(Color), radius)
         {
         }
 
-        public Border(double width, Color color) : this(width, LineStyle.Solid, color)
+        public Border(Border border)
         {
+            LeftWidth = border.LeftWidth;
+            TopWidth = border.TopWidth;
+            RightWidth = border.RightWidth;
+            BottomWidth = border.BottomWidth;
+
+            LeftStyle = border.LeftStyle;
+            TopStyle = border.TopStyle;
+            RightStyle = border.RightStyle;
+            BottomStyle = border.BottomStyle;
+
+            LeftColor = border.LeftColor;
+            TopColor = border.TopColor;
+            RightColor = border.RightColor;
+            BottomColor = border.BottomColor;
+
+            BottomLeft = border.BottomLeft;
+            BottomRight = border.BottomRight;
+            TopLeft = border.TopLeft;
+            TopRight = border.TopRight;
         }
 
-        public Border(double width) : this(width, LineStyle.Solid, Color.Default)
+        public Border ChangeWidth(double top, double right, double bottom, double left)
         {
+            var border = new Border(this);
+            border.TopWidth = top;
+            border.RightWidth = right;
+            border.BottomWidth = bottom;
+            border.LeftWidth = left;
+            return border;
         }
 
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.Append($"Border-Left : {Left}\n");
-            sb.Append($"Border-Top : {Top}\n");
-            sb.Append($"Border-Right : {Right}\n");
-            sb.Append($"Border-Bottom : {Bottom}\n");
-            sb.Append($"Border-Top-Left-Radius : {TopLeft}\n");
-            sb.Append($"Border-Top-Right-Radius : {TopRight}\n");
-            sb.Append($"Border-Bottom-Left-Radius : {BottomLeft}\n");
-            sb.Append($"Border-Bottom-Right-Radius : {BottomRight}");
-            return sb.ToString();
-        }
+        public Border ChangeWidth(double top, double horizontal, double bottom) => ChangeWidth(top, horizontal, bottom, horizontal);
+        public Border ChangeWidth(double vertical, double horizontal) => ChangeWidth(vertical, horizontal, vertical, horizontal);
+        public Border ChangeWidth(double width) => ChangeWidth(width, width, width, width);
     }
 }

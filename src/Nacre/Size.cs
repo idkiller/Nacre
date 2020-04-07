@@ -2,31 +2,24 @@
 
 namespace Nacre
 {
+    /*
     public struct Size
     {
         public AutoValue X { get; set; }
         public AutoValue Y { get; set; }
 
-        public BackgroundSizePolicy Policy { get; set; }
-
-        public Size(AutoValue x, AutoValue y, BackgroundSizePolicy policy)
+        public Size(AutoValue x, AutoValue y)
         {
             X = x;
             Y = y;
-            Policy = policy;
         }
-
-        public Size(AutoValue x, AutoValue y) : this(x, y, BackgroundSizePolicy.Contain)
-        {
-        }
-
         public Size(AutoValue a) : this(a, AutoValue.Auto)
         {
         }
 
         public override string ToString()
         {
-            return $"Size {{{Enum.GetName(typeof(BackgroundSizePolicy), Policy)}, {X}, {Y}}}";
+            return $"Size {{{X}, {Y}}}";
         }
     }
 
@@ -44,10 +37,5 @@ namespace Nacre
             return IsAuto ? "Auto" : Value.ToString();
         }
     }
-
-    public enum BackgroundSizePolicy
-    {
-        Contain,
-        Cover
-    }
+    */
 }

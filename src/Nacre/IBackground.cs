@@ -35,9 +35,10 @@ namespace Nacre
     {
         public ISource Source { get; set; }
         public BackgroundOrigin Origin { get; set; }
-        public Position Position { get; set; }
+        public Point Position { get; set; }
         public Repeat Repeat { get; set; }
-        public global::Nacre.Size Size { get; set; }
+        public BackgroundSizePolicy Policy { get; set; }
+        public Size? Size { get; set; }
 
         public Background(Background bg)
         {
@@ -45,6 +46,7 @@ namespace Nacre
             Origin = bg.Origin;
             Position = bg.Position;
             Repeat = bg.Repeat;
+            Policy = bg.Policy;
             Size = bg.Size;
         }
     }
@@ -53,5 +55,11 @@ namespace Nacre
     {
         Circle,
         Ellipse
+    }
+
+    public enum BackgroundSizePolicy
+    {
+        Contain,
+        Cover
     }
 }
