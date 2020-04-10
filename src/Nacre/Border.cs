@@ -40,6 +40,14 @@ namespace Nacre
         {
         }
 
+        public Border(double width, Size radius) : this(width, default(LineStyle), default(Color), radius)
+        {
+        }
+
+        public Border(double width, Color color, Size radius) : this(width, default(LineStyle), color, radius)
+        {
+        }
+
         public Border(Border border)
         {
             LeftWidth = border.LeftWidth;

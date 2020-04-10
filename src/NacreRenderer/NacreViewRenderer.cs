@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 using Xamarin.Forms;
 using Xamarin.Forms.Internals;
 using Xamarin.Forms.Platform.Tizen;
@@ -85,6 +86,7 @@ namespace Nacre.Renderer
             };
             //debugBox.Show();
             Control.PackEnd(debugBox);
+            Interop.evas_object_clip_unset(debugBox);
 
             canvasView = new SKCanvasView(Forms.NativeParent);
             canvasView.PaintSurface += OnPaintCanvas;
@@ -105,7 +107,6 @@ namespace Nacre.Renderer
                 }
                 return false;
             });
-
         }
 
         void UpdateCanvasSize(ElmSharp.Rect rect)
@@ -120,7 +121,7 @@ namespace Nacre.Renderer
             foreach (var shadow in Self.Shadows)
             {
                 if (shadow.Inset) continue;
-                var spreadSize = shadow.BlurRadius + shadow.SpreadRadius;
+                var spreadSize = shadow.BlurRadius * 2 + shadow.SpreadRadius;
                 var sl = shadow.OffsetX - spreadSize;
                 var sr = shadow.OffsetX + spreadSize;
                 var st = shadow.OffsetY - spreadSize;
@@ -136,7 +137,7 @@ namespace Nacre.Renderer
             right += Self.Border.RightWidth;
             bottom += Self.Border.BottomWidth;
 
-            var canvasGeometry = new ElmSharp.Rect(rect.X + (int)left, rect.Y + (int)top, rect.Right + (int)right, rect.Bottom + (int)bottom);
+            var canvasGeometry = new ElmSharp.Rect(rect.X + (int)left, rect.Y + (int)top, rect.Width + (int)right - (int)left, rect.Height + (int)bottom - (int)top);
             if (canvasView != null)
             {
                 canvasView.Geometry = canvasGeometry;
@@ -152,12 +153,12 @@ namespace Nacre.Renderer
         void OnPaintCanvas(object sender, SKPaintSurfaceEventArgs e)
         {
             var canvas = e.Surface.Canvas;
+            canvas.Clear();
 
             var left = formsGeometry.Left - canvasView.Geometry.Left;
             var top = formsGeometry.Top - canvasView.Geometry.Top;
             var path = new SKPath();
             var rect = new SKRect(left, top, left + formsGeometry.Width, top + formsGeometry.Height);
-            Console.WriteLine($"draw rect = {rect}");
 
             var borderTop = new SKPath();
             var borderRight = new SKPath();
@@ -190,16 +191,17 @@ namespace Nacre.Renderer
             using (var paint = new SKPaint())
             {
                 paint.IsAntialias = true;
-
-                
                 paint.Style = SKPaintStyle.StrokeAndFill;
                 foreach (var shadow in Self.Shadows)
                 {
                     if (shadow.Inset) continue;
+                    canvas.Save();
+                    canvas.ClipPath(path, SKClipOperation.Difference, true);
                     paint.StrokeWidth = (float)shadow.SpreadRadius;
                     paint.ImageFilter = SKImageFilter.CreateDropShadow((float)shadow.OffsetX, (float)shadow.OffsetY, (float)shadow.BlurRadius, (float)shadow.BlurRadius, shadow.Color.ToSK(),
                             SKDropShadowImageFilterShadowMode.DrawShadowOnly);
                     canvas.DrawPath(path, paint);
+                    canvas.Restore();
                 }
                 paint.ImageFilter = null;
 
@@ -212,10 +214,74 @@ namespace Nacre.Renderer
                             paint.Color = solid.Color.ToSK();
                             canvas.DrawPath(path, paint);
                         break;
+                        case LinearGradient linear:
+                            path.GetBounds(out var bgRect);
+                            paint.Style = SKPaintStyle.Fill;
+                            paint.StrokeWidth = 0;
+
+                            var rad = Math.PI / 180 * linear.Angle;
+                            var cx = bgRect.Left + bgRect.Width / 2;
+                            var cy = bgRect.Top + bgRect.Height / 2;
+                            var tan = (float)Math.Tan(rad);
+                            var cos = (float)Math.Cos(rad);
+
+                            float x1 = 0, y1 = 0, x2 = 0, y2 = 0, px = 0, py = 0;
+                            if (tan == 0)
+                            {
+                                x1 = bgRect.Left;
+                                y1 = cy;
+                                x2 = bgRect.Right;
+                                y2 = cy;
+                            }
+                            else if (cos == 0)
+                            {
+                                x1 = cx;
+                                y1 = bgRect.Top;
+                                x2 = cx;
+                                y2 = bgRect.Bottom;
+                            }
+                            else
+                            {
+                                if (tan > 0 && cos > 0)
+                                {
+                                    px = bgRect.Right;
+                                    py = bgRect.Bottom;
+                                }
+                                else if (tan > 0 && cos < 0)
+                                {
+                                    px = bgRect.Left;
+                                    py = bgRect.Top;
+                                }
+                                else if (tan < 0 && cos > 0)
+                                {
+                                    px = bgRect.Right;
+                                    py = bgRect.Top;
+                                }
+                                else if (tan < 0 && cos < 0)
+                                {
+                                    px = bgRect.Left;
+                                    py = bgRect.Bottom;
+                                }
+                                var p = (-tan * px + py + tan * cx - cy) / (tan * tan + 1);
+                                x1 = p * tan + px;
+                                y1 = py - p;
+                                x2 = 2 * cx - x1;
+                                y2 = 2 * cy - y1;
+                            }
+
+                            paint.StrokeWidth = 0;
+                            paint.Style = SKPaintStyle.Fill;
+                            paint.Shader = SKShader.CreateLinearGradient(
+                                new SKPoint(x1, y1),
+                                new SKPoint(x2, y2),
+                                linear.Colors.Select(color => color.ToSK()).ToArray(),
+                                linear.ColorPosition.ToArray(), SKShaderTileMode.Repeat);
+                            canvas.DrawPath(path, paint);
+                        break;
                     }
                 }
-
-
+                
+                paint.Shader = null;
                 paint.Style = SKPaintStyle.Stroke;
                 foreach (var shadow in Self.Shadows)
                 {
@@ -234,18 +300,33 @@ namespace Nacre.Renderer
                 paint.StrokeCap = SKStrokeCap.Square;
                 paint.Style = SKPaintStyle.Stroke;
 
-                paint.Color = Self.Border.TopColor.ToSK();
-                paint.StrokeWidth = (float)Self.Border.TopWidth;
-                canvas.DrawPath(borderTop, paint);
-                paint.Color = Self.Border.RightColor.ToSK();
-                paint.StrokeWidth = (float)Self.Border.RightWidth;
-                canvas.DrawPath(borderRight, paint);
-                paint.Color = Self.Border.BottomColor.ToSK();
-                paint.StrokeWidth = (float)Self.Border.BottomWidth;
-                canvas.DrawPath(borderBottom, paint);
-                paint.Color = Self.Border.LeftColor.ToSK();
-                paint.StrokeWidth = (float)Self.Border.LeftWidth;
-                canvas.DrawPath(borderLeft, paint);
+                if (Self.Border.TopWidth > 0)
+                {
+                    paint.Color = Self.Border.TopColor.ToSK();
+                    paint.StrokeWidth = (float)Self.Border.TopWidth;
+                    canvas.DrawPath(borderTop, paint);
+                }
+
+                if (Self.Border.RightWidth > 0)
+                {
+                    paint.Color = Self.Border.RightColor.ToSK();
+                    paint.StrokeWidth = (float)Self.Border.RightWidth;
+                    canvas.DrawPath(borderRight, paint);
+                }
+
+                if (Self.Border.BottomWidth > 0)
+                {
+                    paint.Color = Self.Border.BottomColor.ToSK();
+                    paint.StrokeWidth = (float)Self.Border.BottomWidth;
+                    canvas.DrawPath(borderBottom, paint);
+                }
+
+                if (Self.Border.LeftWidth > 0)
+                {
+                    paint.Color = Self.Border.LeftColor.ToSK();
+                    paint.StrokeWidth = (float)Self.Border.LeftWidth;
+                    canvas.DrawPath(borderLeft, paint);
+                }
             }
         }
     }
