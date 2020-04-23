@@ -96,7 +96,6 @@ namespace Nacre
     public struct Background
     {
         public ISource Source { get; set; }
-        public BackgroundOrigin Origin { get; set; }
         public Point Position { get; set; }
         public Repeat Repeat { get; set; }
         public BackgroundSizePolicy Policy { get; set; }
@@ -105,7 +104,6 @@ namespace Nacre
         public Background(Background bg)
         {
             Source = bg.Source;
-            Origin = bg.Origin;
             Position = bg.Position;
             Repeat = bg.Repeat;
             Policy = bg.Policy;
@@ -122,6 +120,7 @@ namespace Nacre
     public enum BackgroundSizePolicy
     {
         Contain,
-        Cover
+        Cover,
+        Auto
     }
 }
